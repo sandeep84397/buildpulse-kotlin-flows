@@ -138,6 +138,10 @@ A cold stream behaves similarly:
 - A second collector usually starts another independent execution.
 - When nobody collects, that execution is not running.
 
+![Cold Flow remains idle until collect starts an independent execution](../diagrams/article-01-cold-flow.gif)
+
+*The first `collect()` starts Execution A and its emissions. A later `collect()` starts a separate Execution B and restarts the values for that collector.*
+
 Inside BuildPulse, “generate a build-history report for this screen” could be cold. Each collector asks for its own execution when needed.
 
 Later articles will separate three cold-flow tools:
@@ -163,6 +167,10 @@ A hot stream commonly behaves like this:
 - A late collector may miss earlier values unless replay or current-state behavior is configured.
 - Removing one collector does not necessarily stop the source.
 
+![StateFlow producer updates shared state and active collectors observe it](../diagrams/article-01-hot-stateflow.gif)
+
+*This `StateFlow` example separates subscription from state changes: only the producer updates `IDLE → COMPILING → RUNNING_TESTS`; collectors observe the current and future states.*
+
 BuildPulse has two distinct hot-stream needs:
 
 - **Current build state:** “What stage is the build in now?” This points toward `StateFlow`.
@@ -182,11 +190,9 @@ A physical channel connects two sides and gives something a route through which 
 
 In BuildPulse, imagine a queue of build jobs:
 
-```text
-Build 101 ─┐
-Build 102 ─┼──▶ job channel ──▶ available workers
-Build 103 ─┘
-```
+![Channel transfers each build job to one ready worker](../diagrams/article-01-channel.gif)
+
+*Worker selection is not guaranteed round-robin. The next item goes to one receiver that is ready; timing and scheduling can change which worker receives it.*
 
 The goal is usually work transfer. One worker receives a job and processes it. We do not normally want every worker to execute the same build.
 
