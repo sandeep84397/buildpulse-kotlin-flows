@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">One result compared with a changing build</title>
+  <desc id="desc">A BuildPulse timeline showing that one fetched value stays at compiling while the server continues through tests, security scan, deployment, and success.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#10243a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" rx="42" fill="url(#bg)"/>
+  <text x="96" y="108" fill="#83e8c7" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="4">BUILDPULSE / THE ORIGINAL PROBLEM</text>
+  <text x="96" y="182" fill="#f3f7fd" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="800">The request returned one correct answer.</text>
+  <text x="96" y="242" fill="#aebed1" font-family="Inter, Arial, sans-serif" font-size="34">The system did not stop changing.</text>
+
+  <rect x="96" y="310" width="1408" height="210" rx="28" fill="#15263a" filter="url(#shadow)"/>
+  <text x="140" y="366" fill="#7cc4ff" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="2">SERVER TIMELINE</text>
+  <line x1="180" y1="438" x2="1420" y2="438" stroke="#52657d" stroke-width="5"/>
+
+  <g font-family="Inter, Arial, sans-serif" text-anchor="middle">
+    <g transform="translate(210 438)"><circle r="18" fill="#83e8c7"/><text y="65" fill="#eaf1fa" font-size="22">QUEUED</text><text y="96" fill="#8798ad" font-size="18">t0</text></g>
+    <g transform="translate(450 438)"><circle r="18" fill="#83e8c7"/><text y="65" fill="#eaf1fa" font-size="22">COMPILING</text><text y="96" fill="#8798ad" font-size="18">t1</text></g>
+    <g transform="translate(700 438)"><circle r="18" fill="#7cc4ff"/><text y="65" fill="#eaf1fa" font-size="22">TESTS</text><text y="96" fill="#8798ad" font-size="18">t2</text></g>
+    <g transform="translate(940 438)"><circle r="18" fill="#7cc4ff"/><text y="65" fill="#eaf1fa" font-size="22">SCAN</text><text y="96" fill="#8798ad" font-size="18">t3</text></g>
+    <g transform="translate(1170 438)"><circle r="18" fill="#7cc4ff"/><text y="65" fill="#eaf1fa" font-size="22">DEPLOY</text><text y="96" fill="#8798ad" font-size="18">t4</text></g>
+    <g transform="translate(1410 438)"><circle r="22" fill="#83e8c7"/><text y="65" fill="#eaf1fa" font-size="22">SUCCESS</text><text y="96" fill="#8798ad" font-size="18">t5</text></g>
+  </g>
+
+  <rect x="96" y="585" width="650" height="218" rx="28" fill="#111d2d" stroke="#31465f" stroke-width="2"/>
+  <text x="140" y="641" fill="#aebed1" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="2">ONE SUSPENDING CALL</text>
+  <text x="140" y="710" fill="#f3f7fd" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="34">returned COMPILING</text>
+  <text x="140" y="760" fill="#ffb4ab" font-family="Inter, Arial, sans-serif" font-size="24">The UI keeps this snapshot.</text>
+
+  <rect x="790" y="585" width="714" height="218" rx="28" fill="#111d2d" stroke="#31465f" stroke-width="2"/>
+  <text x="834" y="641" fill="#aebed1" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="2">WHAT THE APP ACTUALLY NEEDS</text>
+  <text x="834" y="710" fill="#f3f7fd" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">Every meaningful change over time</text>
+  <text x="834" y="760" fill="#83e8c7" font-family="Inter, Arial, sans-serif" font-size="24">That requirement leads to a stream.</text>
+</svg>

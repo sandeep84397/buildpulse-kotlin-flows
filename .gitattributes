@@ -1,0 +1,3 @@
+*.png binary
+*.jar binary
+gradlew.bat text eol=lf

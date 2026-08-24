@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Asynchronous stream concept map</title>
+  <desc id="desc">A learning map that separates one suspending result from many values over time, then distinguishes cold flows, hot flows, and channels.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#10243a"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#5f7691"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="1000" rx="42" fill="url(#bg)"/>
+  <text x="800" y="90" fill="#f3f7fd" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="800" text-anchor="middle">Start with the delivery requirement</text>
+  <text x="800" y="138" fill="#aebed1" font-family="Inter, Arial, sans-serif" font-size="25" text-anchor="middle">Choose an abstraction only after deciding who produces, who receives, and when.</text>
+
+  <rect x="520" y="190" width="560" height="100" rx="24" fill="#17293f" stroke="#83e8c7" stroke-width="3"/>
+  <text x="800" y="250" fill="#f3f7fd" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">How many values are required?</text>
+
+  <path d="M650 290 V350 H340 V405" fill="none" stroke="#5f7691" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M950 290 V350 H1260 V405" fill="none" stroke="#5f7691" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="110" y="410" width="460" height="170" rx="28" fill="#111d2d" stroke="#7cc4ff" stroke-width="3"/>
+  <text x="340" y="468" fill="#7cc4ff" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="middle">ONE VALUE LATER</text>
+  <text x="340" y="520" fill="#f3f7fd" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="34" font-weight="700" text-anchor="middle">suspend function</text>
+  <text x="340" y="558" fill="#aebed1" font-family="Inter, Arial, sans-serif" font-size="21" text-anchor="middle">Wait efficiently, then return once</text>
+
+  <rect x="1030" y="410" width="460" height="170" rx="28" fill="#111d2d" stroke="#83e8c7" stroke-width="3"/>
+  <text x="1260" y="468" fill="#83e8c7" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700" text-anchor="middle">MANY VALUES OVER TIME</text>
+  <text x="1260" y="520" fill="#f3f7fd" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">Asynchronous delivery</text>
+  <text x="1260" y="558" fill="#aebed1" font-family="Inter, Arial, sans-serif" font-size="21" text-anchor="middle">Now ask who starts and who receives</text>
+
+  <path d="M1260 580 V640 H450 V700" fill="none" stroke="#5f7691" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1260 580 V700" fill="none" stroke="#5f7691" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1260 640 H1150 V700" fill="none" stroke="#5f7691" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g font-family="Inter, Arial, sans-serif">
+    <rect x="170" y="710" width="390" height="205" rx="28" fill="#142338" stroke="#7cc4ff" stroke-width="3"/>
+    <text x="365" y="768" fill="#7cc4ff" font-size="30" font-weight="800" text-anchor="middle">COLD FLOW</text>
+    <text x="365" y="814" fill="#f3f7fd" font-size="23" text-anchor="middle">Collector starts the work</text>
+    <text x="365" y="852" fill="#aebed1" font-size="20" text-anchor="middle">Each collector usually gets</text>
+    <text x="365" y="882" fill="#aebed1" font-size="20" text-anchor="middle">an independent execution</text>
+
+    <rect x="605" y="710" width="390" height="205" rx="28" fill="#142338" stroke="#83e8c7" stroke-width="3"/>
+    <text x="800" y="768" fill="#83e8c7" font-size="30" font-weight="800" text-anchor="middle">HOT FLOW</text>
+    <text x="800" y="814" fill="#f3f7fd" font-size="23" text-anchor="middle">Source can already be active</text>
+    <text x="800" y="852" fill="#aebed1" font-size="20" text-anchor="middle">Observers join a shared,</text>
+    <text x="800" y="882" fill="#aebed1" font-size="20" text-anchor="middle">ongoing source</text>
+
+    <rect x="1040" y="710" width="390" height="205" rx="28" fill="#142338" stroke="#c4a8ff" stroke-width="3"/>
+    <text x="1235" y="768" fill="#c4a8ff" font-size="30" font-weight="800" text-anchor="middle">CHANNEL</text>
+    <text x="1235" y="814" fill="#f3f7fd" font-size="23" text-anchor="middle">Senders transfer values</text>
+    <text x="1235" y="852" fill="#aebed1" font-size="20" text-anchor="middle">A communication primitive,</text>
+    <text x="1235" y="882" fill="#aebed1" font-size="20" text-anchor="middle">not a subtype of Flow</text>
+  </g>
+</svg>
