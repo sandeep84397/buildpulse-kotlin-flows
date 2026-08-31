@@ -56,6 +56,8 @@ fun BuildPulseApp(viewModel: BuildPulseViewModel) {
                 state = viewModel.uiState.value,
                 onAdvanceServer = viewModel::advanceServer,
                 onFetchSnapshot = viewModel::fetchSnapshot,
+                onStartCollector = viewModel::startCollector,
+                onStopCollector = viewModel::stopCollector,
             )
         }
     }
@@ -66,6 +68,8 @@ fun BuildPulseScreen(
     state: BuildPulseUiState,
     onAdvanceServer: () -> Unit,
     onFetchSnapshot: () -> Unit,
+    onStartCollector: (CollectorId) -> Unit,
+    onStopCollector: (CollectorId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -76,7 +80,7 @@ fun BuildPulseScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         item { Header() }
-        item { ProblemStatement() }
+        item { PreviousExperiment() }
         item {
             StatusComparison(
                 state = state,
@@ -85,10 +89,18 @@ fun BuildPulseScreen(
             )
         }
         item { PipelineProgress(currentStage = state.serverStage) }
+        item { ColdFlowProblem() }
+        item {
+            ColdFlowLab(
+                state = state,
+                onStartCollector = onStartCollector,
+                onStopCollector = onStopCollector,
+            )
+        }
         item { LearningRoadmap() }
         item {
             Text(
-                text = "Article 1 stops here. The next article replaces repeated snapshots with a cold Flow.",
+                text = "Article 2 stops here. Next: adapt a callback API safely with callbackFlow.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 24.dp),
@@ -101,21 +113,21 @@ fun BuildPulseScreen(
 private fun Header() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = "BUILDPULSE / ARTICLE 01",
+            text = "BUILDPULSE / ARTICLE 02",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 1.6.sp,
         )
         Text(
-            text = "One answer.\nA changing system.",
+            text = "Nothing runs\nuntil collect().",
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Black,
             fontSize = 34.sp,
             lineHeight = 38.sp,
         )
         Text(
-            text = "A suspend function can wait efficiently—but it still returns only one result.",
+            text = "A cold Flow stores a recipe. Each collector starts a new execution of that recipe.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -123,17 +135,179 @@ private fun Header() {
 }
 
 @Composable
-private fun ProblemStatement() {
+private fun PreviousExperiment() {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(18.dp),
     ) {
         Text(
-            text = "Experiment: fetch the build once, advance the server, then compare what the server knows with what the UI still displays.",
+            text = "ARTICLE 01 RECAP: Fetch once, advance the server, and see the UI snapshot become stale.",
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(18.dp),
         )
+    }
+}
+
+@Composable
+private fun ColdFlowProblem() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "THE ARTICLE 02 PROBLEM",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                letterSpacing = 1.2.sp,
+            )
+            Text(
+                text = "Repeated snapshots make the caller manage loops, ordering, and cancellation. BuildPulse needs one recipe for the complete history.",
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = "Defining waits. Collecting runs. Every collector gets a new execution.",
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColdFlowLab(
+    state: BuildPulseUiState,
+    onStartCollector: (CollectorId) -> Unit,
+    onStopCollector: (CollectorId) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "RUN THE SAME COLD FLOW TWICE",
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 1.2.sp,
+        )
+        Text(
+            text = "The Flow is already defined, but the producer is idle. Start A, then start B. Both begin at QUEUED because each collect() executes the upstream block again.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        CollectorCard(
+            collectorId = CollectorId.A,
+            timeline = state.collectorA,
+            accent = MaterialTheme.colorScheme.primary,
+            onStart = onStartCollector,
+            onStop = onStopCollector,
+        )
+        CollectorCard(
+            collectorId = CollectorId.B,
+            timeline = state.collectorB,
+            accent = MaterialTheme.colorScheme.secondary,
+            onStart = onStartCollector,
+            onStop = onStopCollector,
+        )
+    }
+}
+
+@Composable
+private fun CollectorCard(
+    collectorId: CollectorId,
+    timeline: CollectorTimeline,
+    accent: Color,
+    onStart: (CollectorId) -> Unit,
+    onStop: (CollectorId) -> Unit,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        text = "COLLECTOR ${collectorId.name}",
+                        color = accent,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.1.sp,
+                    )
+                    Text(
+                        text = when {
+                            timeline.isRunning && timeline.snapshots.isEmpty() ->
+                                "Collection ${timeline.collectionNumber} starting"
+                            timeline.isRunning ->
+                                "Execution from collection ${timeline.collectionNumber} running"
+                            timeline.isComplete ->
+                                "Collection ${timeline.collectionNumber} execution complete"
+                            timeline.collectionNumber > 0 ->
+                                "Collection ${timeline.collectionNumber} stopped"
+                            else -> "Idle — no collect() yet"
+                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(
+                            color = if (timeline.isRunning) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                            shape = CircleShape,
+                        ),
+                )
+            }
+
+            if (timeline.snapshots.isEmpty()) {
+                Text(
+                    text = "No values. The producer has not started.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else {
+                timeline.snapshots.forEach { snapshot ->
+                    Text(
+                        text = "${snapshot.sequence + 1}. ${snapshot.stage.label}",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Button(
+                    onClick = { onStart(collectorId) },
+                    colors = ButtonDefaults.buttonColors(containerColor = accent),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(if (timeline.collectionNumber == 0) "Start collect()" else "Run again")
+                }
+                OutlinedButton(
+                    onClick = { onStop(collectorId) },
+                    enabled = timeline.isRunning,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Stop")
+                }
+            }
+        }
     }
 }
 
@@ -290,8 +464,8 @@ private fun PipelineProgress(currentStage: BuildStage) {
 @Composable
 private fun LearningRoadmap() {
     val steps = listOf(
-        "01  One-time result — you are here",
-        "02  Cold Flow",
+        "01  One-time result — complete",
+        "02  Cold Flow — you are here",
         "03  callbackFlow",
         "04  channelFlow",
         "05  Hot streams",
@@ -317,8 +491,8 @@ private fun LearningRoadmap() {
             steps.forEachIndexed { index, step ->
                 Text(
                     text = step,
-                    color = if (index == 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Normal,
+                    color = if (index == 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (index == 1) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier.padding(vertical = 7.dp),
                 )
                 if (index < steps.lastIndex) {
@@ -345,6 +519,8 @@ private fun BuildPulsePreview() {
             ),
             onAdvanceServer = {},
             onFetchSnapshot = {},
+            onStartCollector = {},
+            onStopCollector = {},
         )
     }
 }

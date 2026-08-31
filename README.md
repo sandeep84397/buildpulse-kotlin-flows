@@ -6,18 +6,19 @@ Instead of presenting unrelated snippets, the series evolves one Android/Jetpack
 
 ## Current milestone
 
-**Article 01 — Why asynchronous streams exist**
+**Article 02 — Cold Flow and collection**
 
-The app currently demonstrates one problem:
+The app now connects two problems:
 
-> A suspending function can wait without blocking, but it still returns only one value. What happens when the underlying system continues changing?
+> A one-shot build status becomes stale. A cold Flow describes the complete history, but performs no work until a collector asks for it.
 
-Phase 1 intentionally contains no production `Flow`, `StateFlow`, `SharedFlow`, or `Channel` implementation. Those concepts arrive only when their corresponding article explains them.
+Article 02 introduces only a basic cold `flow {}`. `callbackFlow`, `channelFlow`, hot streams, sharing, and `Channel` remain absent until their own articles.
 
-- [Read the complete Article 1 companion](articles/01-asynchronous-streams.md)
-- [Inspect the one-shot contract](app/src/main/java/io/github/buildpulse/simulation/BuildContracts.kt)
-- [Inspect the stale-snapshot test](app/src/test/java/io/github/buildpulse/simulation/InMemoryBuildSimulatorTest.kt)
-- Git tag: `article-01-introduction`
+- [Read Article 02: Cold Flow](articles/02-cold-flow.md)
+- [Start with Article 01](articles/01-asynchronous-streams.md)
+- [Inspect the cold history repository](app/src/main/java/io/github/buildpulse/simulation/ColdBuildHistoryRepository.kt)
+- [Inspect the cold behavior tests](app/src/test/java/io/github/buildpulse/simulation/ColdBuildHistoryRepositoryTest.kt)
+- Git tag: `article-02-cold-flow`
 
 ## The experiment
 
@@ -27,7 +28,7 @@ BuildPulse simulates this pipeline:
 QUEUED → COMPILING → RUNNING_TESTS → SECURITY_SCAN → DEPLOYING → SUCCEEDED
 ```
 
-The screen shows two values:
+The first lab still shows two values:
 
 - **Server now:** the current simulated pipeline stage.
 - **UI snapshot:** the last value returned by `fetchStatus()`.
@@ -39,9 +40,18 @@ Run this sequence:
 3. Observe that the server changes while the fetched snapshot stays unchanged.
 4. Fetch again to make the values match.
 
-That mismatch is not a UI bug. It is the original modeling problem the series will solve.
+That mismatch is not a UI bug. It is the original modeling problem.
 
 ![One result compared with a changing build](diagrams/article-01-one-result-vs-stream.svg)
+
+The second lab defines one cold build-history Flow and exposes two collectors:
+
+1. Before either collector starts, the producer is idle.
+2. Start Collector A. Its execution begins at `QUEUED`.
+3. Start Collector B later. It does not join A; it starts a second execution at `QUEUED`.
+4. Stop A. B continues because the collecting jobs are independent.
+
+![Two collectors start two cold Flow executions](diagrams/article-02-two-collectors.gif)
 
 ## Run the Android app
 
@@ -65,7 +75,7 @@ Open the project in Android Studio and run the `app` configuration on an emulato
 | Article | BuildPulse limitation | Concept introduced | Milestone |
 |---|---|---|---|
 | 01 | One fetched status becomes stale | Asynchronous-stream mental model | `article-01-introduction` |
-| 02 | Repeated snapshots lack structured collection | Cold `Flow` | Unpublished |
+| 02 | Repeated snapshots lack structured collection | Cold `Flow` | `article-02-cold-flow` |
 | 03 | CI SDK exposes listeners | `callbackFlow` | Unpublished |
 | 04 | Compiler, tests, and scanner emit concurrently | `channelFlow` | Unpublished |
 | 05 | Multiple screens repeat one upstream operation | Hot streams | Unpublished |
@@ -91,8 +101,8 @@ Open the project in Android Studio and run the `app` configuration on an emulato
 ```text
 app/src/main/java/io/github/buildpulse/
 ├── model/          Immutable build stages and snapshots
-├── simulation/     One-shot status contract and deterministic simulator
-├── dashboard/      Tested UI state plus the Compose experiment
+├── simulation/     One-shot status plus cold history contracts and producers
+├── dashboard/      Tested UI state plus one-shot and two-collector labs
 └── MainActivity.kt Dependency assembly and app entry point
 
 articles/           Self-contained article companions

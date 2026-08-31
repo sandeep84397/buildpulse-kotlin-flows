@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Cold Flow definition compared with collection</title>
+  <desc id="description">Defining a cold Flow stores an idle recipe. Calling collect starts a new execution that emits ordered build stages.</desc>
+  <rect width="1200" height="675" fill="#F7F4ED"/>
+  <text x="60" y="68" fill="#101828" font-family="Arial, sans-serif" font-size="40" font-weight="700">COLD FLOW: DEFINITION ≠ EXECUTION</text>
+  <text x="60" y="106" fill="#475467" font-family="Arial, sans-serif" font-size="22">The producer waits until a terminal operation asks for values.</text>
+
+  <rect x="60" y="150" width="450" height="365" rx="24" fill="#FFFFFF" stroke="#D0D5DD" stroke-width="2"/>
+  <text x="92" y="198" fill="#6941C6" font-family="Arial, sans-serif" font-size="18" font-weight="700">1 · FLOW DEFINED</text>
+  <text x="92" y="235" fill="#101828" font-family="Arial, sans-serif" font-size="27" font-weight="700">A saved recipe</text>
+  <rect x="92" y="268" width="386" height="152" rx="16" fill="#F4F3FF"/>
+  <text x="118" y="305" fill="#42307D" font-family="monospace" font-size="21">flow {</text>
+  <text x="146" y="341" fill="#42307D" font-family="monospace" font-size="21">emit(QUEUED)</text>
+  <text x="146" y="377" fill="#42307D" font-family="monospace" font-size="21">emit(COMPILING)</text>
+  <text x="118" y="409" fill="#42307D" font-family="monospace" font-size="21">}</text>
+  <circle cx="111" cy="466" r="9" fill="#98A2B3"/>
+  <text x="132" y="474" fill="#475467" font-family="Arial, sans-serif" font-size="20" font-weight="700">PRODUCER IDLE</text>
+  <text x="92" y="500" fill="#667085" font-family="Arial, sans-serif" font-size="18">0 executions · 0 emitted values</text>
+
+  <path d="M535 334 H650" fill="none" stroke="#F79009" stroke-width="5" stroke-linecap="round"/>
+  <path d="M635 316 L655 334 L635 352" fill="none" stroke="#F79009" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="542" y="277" width="104" height="38" rx="19" fill="#FFF3E0"/>
+  <text x="594" y="303" text-anchor="middle" fill="#B54708" font-family="monospace" font-size="18" font-weight="700">collect()</text>
+  <text x="594" y="383" text-anchor="middle" fill="#667085" font-family="Arial, sans-serif" font-size="17">START</text>
+
+  <rect x="680" y="150" width="460" height="365" rx="24" fill="#FFFFFF" stroke="#D0D5DD" stroke-width="2"/>
+  <text x="712" y="198" fill="#087E8B" font-family="Arial, sans-serif" font-size="18" font-weight="700">2 · COLLECTOR A</text>
+  <text x="712" y="235" fill="#101828" font-family="Arial, sans-serif" font-size="27" font-weight="700">A new execution</text>
+  <line x1="750" y1="322" x2="1068" y2="322" stroke="#D0D5DD" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="764" cy="322" r="18" fill="#12B3A8"/>
+  <circle cx="864" cy="322" r="18" fill="#12B3A8"/>
+  <circle cx="964" cy="322" r="18" fill="#12B3A8"/>
+  <circle cx="1064" cy="322" r="18" fill="#12B3A8"/>
+  <text x="764" y="368" text-anchor="middle" fill="#344054" font-family="Arial, sans-serif" font-size="15" font-weight="700">QUEUED</text>
+  <text x="864" y="368" text-anchor="middle" fill="#344054" font-family="Arial, sans-serif" font-size="15" font-weight="700">COMPILE</text>
+  <text x="964" y="368" text-anchor="middle" fill="#344054" font-family="Arial, sans-serif" font-size="15" font-weight="700">TEST</text>
+  <text x="1064" y="368" text-anchor="middle" fill="#344054" font-family="Arial, sans-serif" font-size="15" font-weight="700">SUCCESS</text>
+  <circle cx="731" cy="428" r="9" fill="#12B3A8"/>
+  <text x="752" y="436" fill="#087E8B" font-family="Arial, sans-serif" font-size="20" font-weight="700">PRODUCER RUNNING</text>
+  <text x="712" y="474" fill="#667085" font-family="Arial, sans-serif" font-size="18">Ordered emissions belong to this collection.</text>
+
+  <rect x="60" y="558" width="1080" height="72" rx="18" fill="#101828"/>
+  <text x="600" y="603" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="25" font-weight="700">flow { } stores the recipe  •  collect() runs it</text>
+</svg>

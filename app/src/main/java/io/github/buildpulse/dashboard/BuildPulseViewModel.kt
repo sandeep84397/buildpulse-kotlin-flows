@@ -5,17 +5,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.buildpulse.model.BuildId
+import io.github.buildpulse.simulation.BuildHistoryReader
 import io.github.buildpulse.simulation.BuildScenarioController
 import io.github.buildpulse.simulation.BuildStatusReader
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class BuildPulseViewModel(
     private val statusReader: BuildStatusReader,
     private val scenarioController: BuildScenarioController,
+    private val historyReader: BuildHistoryReader,
     private val buildId: BuildId,
 ) : ViewModel() {
     private val _uiState = mutableStateOf(BuildPulseUiState())
     val uiState: State<BuildPulseUiState> = _uiState
+    private val collectorJobs = mutableMapOf<CollectorId, Job>()
 
     fun fetchSnapshot() {
         viewModelScope.launch {
@@ -40,6 +45,66 @@ class BuildPulseViewModel(
                 serverSequence = server.sequence,
                 isWorking = false,
             )
+        }
+    }
+
+    fun startCollector(collectorId: CollectorId) {
+        collectorJobs.remove(collectorId)?.cancel()
+        val collectionNumber = timeline(collectorId).collectionNumber + 1
+        updateTimeline(collectorId) {
+            CollectorTimeline(
+                collectionNumber = collectionNumber,
+                isRunning = true,
+            )
+        }
+
+        collectorJobs[collectorId] = viewModelScope.launch {
+            var completed = false
+            try {
+                historyReader.observeHistory(buildId).collect { snapshot ->
+                    updateTimelineIfCurrent(collectorId, collectionNumber) { timeline ->
+                        timeline.copy(snapshots = timeline.snapshots + snapshot)
+                    }
+                }
+                completed = true
+            } finally {
+                updateTimelineIfCurrent(collectorId, collectionNumber) { timeline ->
+                    timeline.copy(
+                        isRunning = false,
+                        isComplete = completed,
+                    )
+                }
+            }
+        }
+    }
+
+    fun stopCollector(collectorId: CollectorId) {
+        collectorJobs.remove(collectorId)?.cancel()
+        updateTimeline(collectorId) { it.copy(isRunning = false) }
+    }
+
+    private fun timeline(collectorId: CollectorId): CollectorTimeline = when (collectorId) {
+        CollectorId.A -> _uiState.value.collectorA
+        CollectorId.B -> _uiState.value.collectorB
+    }
+
+    private fun updateTimelineIfCurrent(
+        collectorId: CollectorId,
+        collectionNumber: Int,
+        transform: (CollectorTimeline) -> CollectorTimeline,
+    ) {
+        if (timeline(collectorId).collectionNumber == collectionNumber) {
+            updateTimeline(collectorId, transform)
+        }
+    }
+
+    private fun updateTimeline(
+        collectorId: CollectorId,
+        transform: (CollectorTimeline) -> CollectorTimeline,
+    ) {
+        _uiState.value = when (collectorId) {
+            CollectorId.A -> _uiState.value.copy(collectorA = transform(_uiState.value.collectorA))
+            CollectorId.B -> _uiState.value.copy(collectorB = transform(_uiState.value.collectorB))
         }
     }
 }

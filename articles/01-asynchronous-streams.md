@@ -4,7 +4,7 @@
 
 > **BuildPulse series · Article 1 of 9**
 >
-> Previous: Start here · **You are here: Asynchronous streams** · Next: Cold Flow *(unpublished)*
+> Previous: Start here · **You are here: Asynchronous streams** · [Next: Cold Flow](02-cold-flow.md)
 
 Most explanations of Kotlin Flow begin with `flow {}` and `collect()`.
 
@@ -320,4 +320,4 @@ Next, we will replace repeated BuildPulse snapshots with a cold Flow and answer 
 
 **Series navigation**
 
-Previous: Start here · [Series repository](../README.md) · Next: Cold Flow *(unpublished)*
+Previous: Start here · [Series repository](../README.md) · [Next: Cold Flow](02-cold-flow.md)
