@@ -10,12 +10,12 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.buildpulse.dashboard.BuildPulseApp
 import io.github.buildpulse.dashboard.BuildPulseViewModel
 import io.github.buildpulse.model.BuildId
-import io.github.buildpulse.simulation.ColdBuildHistoryRepository
+import io.github.buildpulse.simulation.CallbackFlowBuildHistoryRepository
 import io.github.buildpulse.simulation.InMemoryBuildSimulator
 
 class MainActivity : ComponentActivity() {
     private val simulator = InMemoryBuildSimulator()
-    private val historyRepository = ColdBuildHistoryRepository()
+    private val historyRepository = CallbackFlowBuildHistoryRepository(simulator)
 
     private val buildPulseViewModel by viewModels<BuildPulseViewModel> {
         viewModelFactory {

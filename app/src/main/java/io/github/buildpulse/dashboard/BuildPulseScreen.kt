@@ -89,9 +89,9 @@ fun BuildPulseScreen(
             )
         }
         item { PipelineProgress(currentStage = state.serverStage) }
-        item { ColdFlowProblem() }
+        item { CallbackFlowProblem() }
         item {
-            ColdFlowLab(
+            CallbackFlowLab(
                 state = state,
                 onStartCollector = onStartCollector,
                 onStopCollector = onStopCollector,
@@ -100,7 +100,7 @@ fun BuildPulseScreen(
         item { LearningRoadmap() }
         item {
             Text(
-                text = "Article 2 stops here. Next: adapt a callback API safely with callbackFlow.",
+                text = "Article 3 stops here. Next: merge concurrent producers safely with channelFlow.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 24.dp),
@@ -113,21 +113,21 @@ fun BuildPulseScreen(
 private fun Header() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = "BUILDPULSE / ARTICLE 02",
+            text = "BUILDPULSE / ARTICLE 03",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 1.6.sp,
         )
         Text(
-            text = "Nothing runs\nuntil collect().",
+            text = "Callbacks in.\nFlow out.",
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Black,
             fontSize = 34.sp,
             lineHeight = 38.sp,
         )
         Text(
-            text = "A cold Flow stores a recipe. Each collector starts a new execution of that recipe.",
+            text = "callbackFlow bridges a listener API into a cold Flow and removes the listener when collection stops.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -141,7 +141,7 @@ private fun PreviousExperiment() {
         shape = RoundedCornerShape(18.dp),
     ) {
         Text(
-            text = "ARTICLE 01 RECAP: Fetch once, advance the server, and see the UI snapshot become stale.",
+            text = "ARTICLE 02 RECAP: A cold Flow waits for collect(), and each collector starts its own execution.",
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(18.dp),
@@ -150,7 +150,7 @@ private fun PreviousExperiment() {
 }
 
 @Composable
-private fun ColdFlowProblem() {
+private fun CallbackFlowProblem() {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(18.dp),
@@ -160,19 +160,19 @@ private fun ColdFlowProblem() {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                text = "THE ARTICLE 02 PROBLEM",
+                text = "THE ARTICLE 03 PROBLEM",
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
                 letterSpacing = 1.2.sp,
             )
             Text(
-                text = "Repeated snapshots make the caller manage loops, ordering, and cancellation. BuildPulse needs one recipe for the complete history.",
+                text = "The CI SDK owns a listener API: addListener() sends future build updates, but our UI wants a cancellable Flow.",
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text = "Defining waits. Collecting runs. Every collector gets a new execution.",
+                text = "collect() registers. trySend() forwards. awaitClose removes the listener.",
                 color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyMedium,
@@ -182,22 +182,30 @@ private fun ColdFlowProblem() {
 }
 
 @Composable
-private fun ColdFlowLab(
+private fun CallbackFlowLab(
     state: BuildPulseUiState,
     onStartCollector: (CollectorId) -> Unit,
     onStopCollector: (CollectorId) -> Unit,
 ) {
+    val activeListeners = listOf(state.collectorA, state.collectorB).count { it.isRunning }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "RUN THE SAME COLD FLOW TWICE",
+            text = "BRIDGE THE CALLBACK SDK",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 1.2.sp,
         )
         Text(
-            text = "The Flow is already defined, but the producer is idle. Start A, then start B. Both begin at QUEUED because each collect() executes the upstream block again.",
+            text = "Start a collector, then tap Advance server above. The SDK calls every registered listener; callbackFlow forwards that update to its collector.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            text = "Active collector-owned listeners: $activeListeners",
+            color = MaterialTheme.colorScheme.secondary,
+            fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.bodyMedium,
         )
         CollectorCard(
@@ -249,14 +257,14 @@ private fun CollectorCard(
                     Text(
                         text = when {
                             timeline.isRunning && timeline.snapshots.isEmpty() ->
-                                "Collection ${timeline.collectionNumber} starting"
+                                "Collection ${timeline.collectionNumber}: listener registered"
                             timeline.isRunning ->
-                                "Execution from collection ${timeline.collectionNumber} running"
+                                "Collection ${timeline.collectionNumber}: listening"
                             timeline.isComplete ->
                                 "Collection ${timeline.collectionNumber} execution complete"
                             timeline.collectionNumber > 0 ->
                                 "Collection ${timeline.collectionNumber} stopped"
-                            else -> "Idle — no collect() yet"
+                            else -> "Idle — no listener registered"
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
@@ -274,7 +282,11 @@ private fun CollectorCard(
 
             if (timeline.snapshots.isEmpty()) {
                 Text(
-                    text = "No values. The producer has not started.",
+                    text = if (timeline.isRunning) {
+                        "Waiting for the SDK callback. Past updates are not replayed."
+                    } else {
+                        "No values. Start collecting to register the listener."
+                    },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -297,7 +309,7 @@ private fun CollectorCard(
                     colors = ButtonDefaults.buttonColors(containerColor = accent),
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(if (timeline.collectionNumber == 0) "Start collect()" else "Run again")
+                    Text(if (timeline.collectionNumber == 0) "Start listening" else "Listen again")
                 }
                 OutlinedButton(
                     onClick = { onStop(collectorId) },
@@ -465,8 +477,8 @@ private fun PipelineProgress(currentStage: BuildStage) {
 private fun LearningRoadmap() {
     val steps = listOf(
         "01  One-time result — complete",
-        "02  Cold Flow — you are here",
-        "03  callbackFlow",
+        "02  Cold Flow — complete",
+        "03  callbackFlow — you are here",
         "04  channelFlow",
         "05  Hot streams",
         "06  StateFlow and SharedFlow",
@@ -491,8 +503,8 @@ private fun LearningRoadmap() {
             steps.forEachIndexed { index, step ->
                 Text(
                     text = step,
-                    color = if (index == 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (index == 1) FontWeight.Bold else FontWeight.Normal,
+                    color = if (index == 2) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (index == 2) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier.padding(vertical = 7.dp),
                 )
                 if (index < steps.lastIndex) {

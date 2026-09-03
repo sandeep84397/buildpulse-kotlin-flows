@@ -6,19 +6,20 @@ Instead of presenting unrelated snippets, the series evolves one Android/Jetpack
 
 ## Current milestone
 
-**Article 02 — Cold Flow and collection**
+**Article 03 — `callbackFlow` and listener cleanup**
 
 The app now connects two problems:
 
-> A one-shot build status becomes stale. A cold Flow describes the complete history, but performs no work until a collector asks for it.
+> A real CI SDK pushes future updates through listeners. `callbackFlow` turns each listener lifetime into a cold, cancellable Flow execution.
 
-Article 02 introduces only a basic cold `flow {}`. `callbackFlow`, `channelFlow`, hot streams, sharing, and `Channel` remain absent until their own articles.
+Article 03 introduces only the callback bridge: `addListener()`, `trySend()`, and `awaitClose { removeListener() }`. `channelFlow`, buffering strategy, hot streams, sharing, and `Channel` remain absent until their own articles.
 
+- [Read Article 03: callbackFlow](articles/03-callback-flow.md)
 - [Read Article 02: Cold Flow](articles/02-cold-flow.md)
 - [Start with Article 01](articles/01-asynchronous-streams.md)
-- [Inspect the cold history repository](app/src/main/java/io/github/buildpulse/simulation/ColdBuildHistoryRepository.kt)
-- [Inspect the cold behavior tests](app/src/test/java/io/github/buildpulse/simulation/ColdBuildHistoryRepositoryTest.kt)
-- Git tag: `article-02-cold-flow`
+- [Inspect the callbackFlow repository](app/src/main/java/io/github/buildpulse/simulation/CallbackFlowBuildHistoryRepository.kt)
+- [Inspect the callback cleanup tests](app/src/test/java/io/github/buildpulse/simulation/CallbackFlowBuildHistoryRepositoryTest.kt)
+- Git tag: `article-03-callback-flow`
 
 ## The experiment
 
@@ -44,14 +45,15 @@ That mismatch is not a UI bug. It is the original modeling problem.
 
 ![One result compared with a changing build](diagrams/article-01-one-result-vs-stream.svg)
 
-The second lab defines one cold build-history Flow and exposes two collectors:
+The Article 03 lab exposes one callback-based CI SDK and two collectors:
 
-1. Before either collector starts, the producer is idle.
-2. Start Collector A. Its execution begins at `QUEUED`.
-3. Start Collector B later. It does not join A; it starts a second execution at `QUEUED`.
-4. Stop A. B continues because the collecting jobs are independent.
+1. Before either collector starts, the SDK has zero listeners; earlier callbacks are missed.
+2. Start Collector A. Its cold `callbackFlow` execution registers one listener.
+3. Start Collector B. A second execution registers a second listener.
+4. Advance the server. The SDK calls both listeners; both collectors receive the future update.
+5. Stop A. `awaitClose` removes A's listener while B continues.
 
-![Two collectors start two cold Flow executions](diagrams/article-02-two-collectors.gif)
+![callbackFlow registers, forwards, and unregisters a listener](diagrams/article-03-callback-flow.gif)
 
 ## Run the Android app
 
@@ -76,7 +78,7 @@ Open the project in Android Studio and run the `app` configuration on an emulato
 |---|---|---|---|
 | 01 | One fetched status becomes stale | Asynchronous-stream mental model | `article-01-introduction` |
 | 02 | Repeated snapshots lack structured collection | Cold `Flow` | `article-02-cold-flow` |
-| 03 | CI SDK exposes listeners | `callbackFlow` | Unpublished |
+| 03 | CI SDK exposes listeners | `callbackFlow` | `article-03-callback-flow` |
 | 04 | Compiler, tests, and scanner emit concurrently | `channelFlow` | Unpublished |
 | 05 | Multiple screens repeat one upstream operation | Hot streams | Unpublished |
 | 06 | Current state and transient events need different rules | `StateFlow` vs `SharedFlow` | Unpublished |
@@ -101,8 +103,8 @@ Open the project in Android Studio and run the `app` configuration on an emulato
 ```text
 app/src/main/java/io/github/buildpulse/
 ├── model/          Immutable build stages and snapshots
-├── simulation/     One-shot status plus cold history contracts and producers
-├── dashboard/      Tested UI state plus one-shot and two-collector labs
+├── simulation/     One-shot status, callback SDK, and Flow adapters
+├── dashboard/      Tested UI state plus snapshot and callback-lifetime labs
 └── MainActivity.kt Dependency assembly and app entry point
 
 articles/           Self-contained article companions

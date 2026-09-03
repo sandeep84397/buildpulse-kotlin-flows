@@ -12,6 +12,16 @@ fun interface BuildHistoryReader {
     fun observeHistory(buildId: BuildId): Flow<BuildSnapshot>
 }
 
+fun interface BuildUpdateListener {
+    fun onBuildUpdated(snapshot: BuildSnapshot)
+}
+
+interface BuildCallbackSource {
+    fun addListener(listener: BuildUpdateListener)
+
+    fun removeListener(listener: BuildUpdateListener)
+}
+
 interface BuildScenarioController {
     suspend fun currentServerStatus(buildId: BuildId): BuildSnapshot
 

@@ -4,7 +4,7 @@
 
 > **BuildPulse series · Article 2 of 9**
 >
-> [Previous: Why asynchronous streams exist](https://medium.com/@sandeep84397/building-a-live-ci-cd-monitor-why-asynchronous-streams-exist-in-kotlin-264571c42b62) · **You are here: Cold Flow** · Next: `callbackFlow` *(unpublished)*
+> [Previous: Why asynchronous streams exist](https://medium.com/@sandeep84397/building-a-live-ci-cd-monitor-why-asynchronous-streams-exist-in-kotlin-264571c42b62) · **You are here: Cold Flow** · [Next: `callbackFlow`](03-callback-flow.md)
 
 In the first article, BuildPulse fetched one CI/CD status:
 
@@ -373,6 +373,8 @@ The next limitation is therefore different:
 > How do we convert a callback that can fire many times into a cold Flow—and guarantee that the listener is removed when collection stops?
 
 That is the job of `callbackFlow`.
+
+[Continue to Article 3: `callbackFlow` — How a Listener Becomes a Flow Without Leaking](03-callback-flow.md)
 
 ## Official references
 
