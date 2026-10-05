@@ -26,3 +26,20 @@ data class BuildSnapshot(
     val stage: BuildStage,
     val sequence: Int,
 )
+
+enum class BuildTask {
+    COMPILER,
+    TESTS,
+    SECURITY_SCAN,
+}
+
+enum class BuildReportState {
+    STARTED,
+    COMPLETED,
+}
+
+data class BuildReport(
+    val buildId: BuildId,
+    val task: BuildTask,
+    val state: BuildReportState,
+)

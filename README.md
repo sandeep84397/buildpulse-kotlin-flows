@@ -6,20 +6,21 @@ Instead of presenting unrelated snippets, the series evolves one Android/Jetpack
 
 ## Current milestone
 
-**Article 03 — `callbackFlow` and listener cleanup**
+**Article 04 — `channelFlow` and concurrent producers**
 
-The app now connects two problems:
+The app now solves the next production problem:
 
-> A real CI SDK pushes future updates through listeners. `callbackFlow` turns each listener lifetime into a cold, cancellable Flow execution.
+> Compiler, tests, and security scan run concurrently. `channelFlow` lets structured child coroutines send their reports into one cold Flow.
 
-Article 03 introduces only the callback bridge: `addListener()`, `trySend()`, and `awaitClose { removeListener() }`. `channelFlow`, buffering strategy, hot streams, sharing, and `Channel` remain absent until their own articles.
+Article 04 introduces only concurrent Flow production: `channelFlow`, child `launch`, `send()`, completion, cancellation, and failure propagation. Hot streams, sharing, and standalone `Channel` remain absent until their own articles.
 
+- [Read Article 04: channelFlow](articles/04-channel-flow.md)
 - [Read Article 03: callbackFlow](articles/03-callback-flow.md)
 - [Read Article 02: Cold Flow](articles/02-cold-flow.md)
 - [Start with Article 01](articles/01-asynchronous-streams.md)
-- [Inspect the callbackFlow repository](app/src/main/java/io/github/buildpulse/simulation/CallbackFlowBuildHistoryRepository.kt)
-- [Inspect the callback cleanup tests](app/src/test/java/io/github/buildpulse/simulation/CallbackFlowBuildHistoryRepositoryTest.kt)
-- Git tag: `article-03-callback-flow`
+- [Inspect the channelFlow repository](app/src/main/java/io/github/buildpulse/simulation/ChannelFlowBuildReportRepository.kt)
+- [Inspect the concurrency tests](app/src/test/java/io/github/buildpulse/simulation/ChannelFlowBuildReportRepositoryTest.kt)
+- Git tag: `article-04-channel-flow`
 
 ## The experiment
 
@@ -45,15 +46,15 @@ That mismatch is not a UI bug. It is the original modeling problem.
 
 ![One result compared with a changing build](diagrams/article-01-one-result-vs-stream.svg)
 
-The Article 03 lab exposes one callback-based CI SDK and two collectors:
+The Article 04 lab exposes three concurrent build-task producers and one collector:
 
-1. Before either collector starts, the SDK has zero listeners; earlier callbacks are missed.
-2. Start Collector A. Its cold `callbackFlow` execution registers one listener.
-3. Start Collector B. A second execution registers a second listener.
-4. Advance the server. The SDK calls both listeners; both collectors receive the future update.
-5. Stop A. `awaitClose` removes A's listener while B continues.
+1. Before collection starts, all producers remain idle.
+2. Start collection. One cold `channelFlow` execution launches compiler, tests, and security children.
+3. Each child uses `send()` whenever its state changes.
+4. The collector timeline displays reports in arrival order.
+5. Completion waits for every child; cancellation stops the whole producer group.
 
-![callbackFlow registers, forwards, and unregisters a listener](diagrams/article-03-callback-flow.gif)
+![channelFlow merges reports from three concurrent child producers](diagrams/article-04-channel-flow.gif)
 
 ## Run the Android app
 
@@ -79,7 +80,7 @@ Open the project in Android Studio and run the `app` configuration on an emulato
 | 01 | One fetched status becomes stale | Asynchronous-stream mental model | `article-01-introduction` |
 | 02 | Repeated snapshots lack structured collection | Cold `Flow` | `article-02-cold-flow` |
 | 03 | CI SDK exposes listeners | `callbackFlow` | `article-03-callback-flow` |
-| 04 | Compiler, tests, and scanner emit concurrently | `channelFlow` | Unpublished |
+| 04 | Compiler, tests, and scanner emit concurrently | `channelFlow` | `article-04-channel-flow` |
 | 05 | Multiple screens repeat one upstream operation | Hot streams | Unpublished |
 | 06 | Current state and transient events need different rules | `StateFlow` vs `SharedFlow` | Unpublished |
 | 07 | Cold upstream work must become shared | `stateIn` vs `shareIn` | Unpublished |
@@ -103,8 +104,8 @@ Open the project in Android Studio and run the `app` configuration on an emulato
 ```text
 app/src/main/java/io/github/buildpulse/
 ├── model/          Immutable build stages and snapshots
-├── simulation/     One-shot status, callback SDK, and Flow adapters
-├── dashboard/      Tested UI state plus snapshot and callback-lifetime labs
+├── simulation/     One-shot status, callback SDK, and concurrent Flow adapters
+├── dashboard/      Tested UI state plus snapshot, callback, and concurrent-producer labs
 └── MainActivity.kt Dependency assembly and app entry point
 
 articles/           Self-contained article companions

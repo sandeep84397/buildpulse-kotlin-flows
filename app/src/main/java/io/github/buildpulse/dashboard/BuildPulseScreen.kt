@@ -35,6 +35,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.buildpulse.model.BuildStage
+import io.github.buildpulse.model.BuildReportState
+import io.github.buildpulse.model.BuildTask
 
 private val BuildPulseColors = darkColorScheme(
     primary = Color(0xFF83E8C7),
@@ -58,6 +60,8 @@ fun BuildPulseApp(viewModel: BuildPulseViewModel) {
                 onFetchSnapshot = viewModel::fetchSnapshot,
                 onStartCollector = viewModel::startCollector,
                 onStopCollector = viewModel::stopCollector,
+                onStartConcurrentRun = viewModel::startConcurrentRun,
+                onStopConcurrentRun = viewModel::stopConcurrentRun,
             )
         }
     }
@@ -70,6 +74,8 @@ fun BuildPulseScreen(
     onFetchSnapshot: () -> Unit,
     onStartCollector: (CollectorId) -> Unit,
     onStopCollector: (CollectorId) -> Unit,
+    onStartConcurrentRun: () -> Unit,
+    onStopConcurrentRun: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -81,26 +87,18 @@ fun BuildPulseScreen(
     ) {
         item { Header() }
         item { PreviousExperiment() }
+        item { ChannelFlowProblem() }
         item {
-            StatusComparison(
-                state = state,
-                onAdvanceServer = onAdvanceServer,
-                onFetchSnapshot = onFetchSnapshot,
-            )
-        }
-        item { PipelineProgress(currentStage = state.serverStage) }
-        item { CallbackFlowProblem() }
-        item {
-            CallbackFlowLab(
-                state = state,
-                onStartCollector = onStartCollector,
-                onStopCollector = onStopCollector,
+            ChannelFlowLab(
+                timeline = state.concurrentRun,
+                onStart = onStartConcurrentRun,
+                onStop = onStopConcurrentRun,
             )
         }
         item { LearningRoadmap() }
         item {
             Text(
-                text = "Article 3 stops here. Next: merge concurrent producers safely with channelFlow.",
+                text = "Article 4 stops here. Next: understand why hot streams keep existing without a collector.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 24.dp),
@@ -113,21 +111,21 @@ fun BuildPulseScreen(
 private fun Header() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = "BUILDPULSE / ARTICLE 03",
+            text = "BUILDPULSE / ARTICLE 04",
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 1.6.sp,
         )
         Text(
-            text = "Callbacks in.\nFlow out.",
+            text = "Three producers.\nOne Flow.",
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Black,
             fontSize = 34.sp,
             lineHeight = 38.sp,
         )
         Text(
-            text = "callbackFlow bridges a listener API into a cold Flow and removes the listener when collection stops.",
+            text = "channelFlow lets concurrent child coroutines send compiler, test, and security reports into one cold stream.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -141,11 +139,181 @@ private fun PreviousExperiment() {
         shape = RoundedCornerShape(18.dp),
     ) {
         Text(
-            text = "ARTICLE 02 RECAP: A cold Flow waits for collect(), and each collector starts its own execution.",
+            text = "ARTICLE 03 RECAP: callbackFlow owns one listener lifetime. Article 04 needs several suspending producers to report concurrently.",
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(18.dp),
         )
+    }
+}
+
+@Composable
+private fun ChannelFlowProblem() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "THE ARTICLE 04 PROBLEM",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                letterSpacing = 1.2.sp,
+            )
+            Text(
+                text = "Compiler, tests, and security scan run at the same time. A regular flow builder expects one sequential emitter.",
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = "channelFlow launches structured children. Each child uses send(); one collector receives reports by arrival.",
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChannelFlowLab(
+    timeline: ConcurrentRunTimeline,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "RUN THE CONCURRENT WORKSHOP",
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 1.2.sp,
+        )
+        Text(
+            text = "One collect() starts all three child producers. Watch their reports merge into the collector timeline.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+
+        BuildTask.entries.forEach { task ->
+            val state = timeline.reports.lastOrNull { it.task == task }?.state
+            TaskLane(task = task, state = state)
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(18.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(
+                    text = "MERGED COLLECTOR TIMELINE",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.1.sp,
+                )
+                Text(
+                    text = when {
+                        timeline.errorMessage != null -> "Run ${timeline.runNumber}: child failure cancelled the workshop"
+                        timeline.isRunning -> "Run ${timeline.runNumber}: collecting"
+                        timeline.isComplete -> "Run ${timeline.runNumber}: all children completed"
+                        timeline.runNumber > 0 -> "Run ${timeline.runNumber}: cancelled"
+                        else -> "No collection. No child producer has started."
+                    },
+                    color = if (timeline.errorMessage == null) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (timeline.reports.isEmpty()) {
+                    Text(
+                        text = "Reports appear here in arrival order.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    timeline.reports.forEachIndexed { index, report ->
+                        Text(
+                            text = "${index + 1}. ${report.task.label} → ${report.state.label}",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+                timeline.errorMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Button(
+                onClick = onStart,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(if (timeline.runNumber == 0) "Start collection" else "Run again")
+            }
+            OutlinedButton(
+                onClick = onStop,
+                enabled = timeline.isRunning,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Cancel")
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskLane(
+    task: BuildTask,
+    state: BuildReportState?,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(14.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = task.label,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = state?.label ?: "WAITING",
+                color = when (state) {
+                    BuildReportState.STARTED -> MaterialTheme.colorScheme.secondary
+                    BuildReportState.COMPLETED -> MaterialTheme.colorScheme.primary
+                    null -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
     }
 }
 
@@ -478,8 +646,8 @@ private fun LearningRoadmap() {
     val steps = listOf(
         "01  One-time result — complete",
         "02  Cold Flow — complete",
-        "03  callbackFlow — you are here",
-        "04  channelFlow",
+        "03  callbackFlow — complete",
+        "04  channelFlow — you are here",
         "05  Hot streams",
         "06  StateFlow and SharedFlow",
         "07  stateIn and shareIn",
@@ -503,8 +671,8 @@ private fun LearningRoadmap() {
             steps.forEachIndexed { index, step ->
                 Text(
                     text = step,
-                    color = if (index == 2) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (index == 2) FontWeight.Bold else FontWeight.Normal,
+                    color = if (index == 3) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (index == 3) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier.padding(vertical = 7.dp),
                 )
                 if (index < steps.lastIndex) {
@@ -517,6 +685,19 @@ private fun LearningRoadmap() {
 
 private val BuildStage.label: String
     get() = name.replace('_', ' ')
+
+private val BuildTask.label: String
+    get() = when (this) {
+        BuildTask.COMPILER -> "COMPILER"
+        BuildTask.TESTS -> "TEST RUNNER"
+        BuildTask.SECURITY_SCAN -> "SECURITY SCANNER"
+    }
+
+private val BuildReportState.label: String
+    get() = when (this) {
+        BuildReportState.STARTED -> "RUNNING"
+        BuildReportState.COMPLETED -> "COMPLETE"
+    }
 
 @Preview(showBackground = true, widthDp = 412, heightDp = 900)
 @Composable
@@ -533,6 +714,8 @@ private fun BuildPulsePreview() {
             onFetchSnapshot = {},
             onStartCollector = {},
             onStopCollector = {},
+            onStartConcurrentRun = {},
+            onStopConcurrentRun = {},
         )
     }
 }

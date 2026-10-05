@@ -4,7 +4,7 @@
 
 > **BuildPulse series · Article 3 of 9**
 >
-> [Previous on Medium: Cold Flow — Why Nothing Happens Until `collect()`](https://medium.com/@sandeep84397/cold-flow-why-nothing-happens-until-collect-927b9b10823d) · [Repository article](02-cold-flow.md) · **You are here: `callbackFlow`** · Next: `channelFlow` *(unpublished)*
+> [Previous on Medium: Cold Flow — Why Nothing Happens Until `collect()`](https://medium.com/@sandeep84397/cold-flow-why-nothing-happens-until-collect-927b9b10823d) · [Repository article](02-cold-flow.md) · **You are here: `callbackFlow`** · [Next: `channelFlow`](04-channel-flow.md)
 
 In Article 2, our producer already spoke Kotlin's language:
 
